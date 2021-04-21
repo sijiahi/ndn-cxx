@@ -22,6 +22,7 @@
 #include "ndn-cxx/mgmt/dispatcher.hpp"
 #include "ndn-cxx/lp/tags.hpp"
 #include "ndn-cxx/util/logger.hpp"
+#include <iostream>
 
 NDN_LOG_INIT(ndn.mgmt.Dispatcher);
 
@@ -110,6 +111,7 @@ Dispatcher::isOverlappedWithOthers(const PartialName& relPrefix) const
 void
 Dispatcher::afterAuthorizationRejected(RejectReply act, const Interest& interest)
 {
+  std::cout<<"afterAuthorizationRejected"<<std::endl;
   if (act == RejectReply::STATUS403) {
     sendControlResponse(ControlResponse(403, "authorization rejected"), interest);
   }

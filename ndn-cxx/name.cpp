@@ -301,7 +301,7 @@ Name::isPrefixOf(const Name& other) const
   // This name is longer than the name we are checking against.
   if (size() > other.size())
     return false;
-
+//Is this name a prefix of others;
   // Check if at least one of given components doesn't match.
   for (size_t i = 0; i < size(); ++i) {
     if (get(i) != other.get(i))

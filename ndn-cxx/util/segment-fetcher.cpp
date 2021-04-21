@@ -27,6 +27,7 @@
 #include "ndn-cxx/lp/nack.hpp"
 #include "ndn-cxx/lp/nack-header.hpp"
 
+#include <iostream> 
 #include <boost/asio/io_service.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/range/adaptor/map.hpp>
@@ -88,11 +89,14 @@ SegmentFetcher::start(Face& face,
 void
 SegmentFetcher::stop()
 {
-  if (!m_this) {
+  weak_ptr<SegmentFetcher> weakSelf = m_this;
+  if (shouldStop(weakSelf)) {
+
     return;
   }
 
   m_pendingSegments.clear(); // cancels pending Interests and timeout events
+    
   m_face.getIoService().post([self = std::move(m_this)] {});
 }
 
@@ -135,7 +139,6 @@ SegmentFetcher::fetchSegmentsInWindow(const Interest& origInterest)
   availableWindowSize -= m_nSegmentsInFlight;
 
   std::vector<std::pair<uint64_t, bool>> segmentsToRequest; // The boolean indicates whether a retx or not
-
   while (availableWindowSize > 0) {
     if (!m_retxQueue.empty()) {
       auto pendingSegmentIt = m_pendingSegments.find(m_retxQueue.front());
@@ -176,8 +179,8 @@ void
 SegmentFetcher::sendInterest(uint64_t segNum, const Interest& interest, bool isRetransmission)
 {
   weak_ptr<SegmentFetcher> weakSelf = m_this;
-
   ++m_nSegmentsInFlight;
+  //std::cout<<"From ndn-cxx, Expressing Segment: "<<interest<<std::endl;
   auto pendingInterest = m_face.expressInterest(interest,
     [this, weakSelf] (const Interest& interest, const Data& data) {
       afterSegmentReceivedCb(interest, data, weakSelf);
@@ -208,6 +211,7 @@ void
 SegmentFetcher::afterSegmentReceivedCb(const Interest& origInterest, const Data& data,
                                        const weak_ptr<SegmentFetcher>& weakSelf)
 {
+  //std::cout<<"From ndn-cxx, Got data: "<<data<<std::endl;
   if (shouldStop(weakSelf))
     return;
 
@@ -286,7 +290,7 @@ SegmentFetcher::afterValidationSuccess(const Data& data, const Interest& origInt
       return signalError(FINALBLOCKID_NOT_SEGMENT,
                          "Received FinalBlockId did not contain a segment component");
     }
-
+    //std::cout<<"From ndn-cxx, got FinalBlockID: "<<data.getFinalBlock()->toSegment() <<std::endl;
     if (data.getFinalBlock()->toSegment() + 1 != static_cast<uint64_t>(m_nSegments)) {
       m_nSegments = data.getFinalBlock()->toSegment() + 1;
       cancelExcessInFlightSegments();

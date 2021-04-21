@@ -25,7 +25,7 @@
 
 #include "ndn-cxx/name-component.hpp"
 #include "ndn-cxx/impl/name-component-types.hpp"
-
+#include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
@@ -183,6 +183,7 @@ Component::fromEscapedString(const std::string& input)
   }
 
   auto typePrefix = input.substr(0, equalPos);
+  //std::cout<<"typeprefix"<<typePrefix<<std::endl;
   auto type = std::strtoul(typePrefix.data(), nullptr, 10);
   if (type >= tlv::NameComponentMin && type <= tlv::NameComponentMax &&
       to_string(type) == typePrefix) {

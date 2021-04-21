@@ -417,7 +417,6 @@ Block::get(uint32_t type) const
   if (it != m_elements.end()) {
     return *it;
   }
-
   NDN_THROW(Error("No sub-element of type " + to_string(type) +
                   " found in block of type " + to_string(m_type)));
 }
